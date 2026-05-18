@@ -1,0 +1,31 @@
+{
+  "stateCode": "_default",
+  "stateName": "Default",
+  "supported": false,
+  "deposit": {
+    "returnDeadlineDays": 30,
+    "deadlineType": "calendar",
+    "maxDepositMonths": null,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 30,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [],
+  "letterTemplate": {
+    "id": "generic_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "disclosure_block"]
+  },
+  "notes": [
+    "Your state's specific rules are not fully configured. Verify deadlines and requirements with your local statutes."
+  ],
+  "lastUpdated": "2026-01-01",
+  "sourceUrl": ""
+}

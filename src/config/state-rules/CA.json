@@ -1,0 +1,35 @@
+{
+  "stateCode": "CA",
+  "stateName": "California",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 21,
+    "deadlineType": "calendar",
+    "maxDepositMonths": 2,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 21,
+    "receiptRequired": true
+  },
+  "inspection": {
+    "noticeDays": 48,
+    "tenantRightToAttend": true,
+    "noticeMethod": "written"
+  },
+  "disclosures": [
+    "Tenant has the right to a pre-move-out inspection per CA Civil Code 1950.5(f).",
+    "Deductions exceeding $125 per item must include documentation or receipts."
+  ],
+  "letterTemplate": {
+    "id": "ca_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block", "return_method"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes"]
+  },
+  "notes": [
+    "California requires offering a pre-move-out inspection at least 48 hours in advance.",
+    "If repairs exceed $125, receipts or invoices must accompany the itemization."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1950.5.&lawCode=CIV"
+}

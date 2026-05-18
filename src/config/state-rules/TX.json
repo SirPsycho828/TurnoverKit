@@ -1,0 +1,35 @@
+{
+  "stateCode": "TX",
+  "stateName": "Texas",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 30,
+    "deadlineType": "calendar",
+    "maxDepositMonths": null,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 30,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per Texas Property Code 92.103, landlord must return deposit within 30 days of move-out.",
+    "Landlord must provide a written description and itemized list of all deductions."
+  ],
+  "letterTemplate": {
+    "id": "tx_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "return_method"]
+  },
+  "notes": [
+    "Texas requires a written description of damages and an itemized list of deductions.",
+    "If the landlord fails to return the deposit within 30 days, the tenant may recover up to 3x the deposit plus $100."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://statutes.capitol.texas.gov/Docs/PR/htm/PR.92.htm"
+}

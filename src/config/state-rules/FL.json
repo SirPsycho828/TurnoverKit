@@ -1,0 +1,35 @@
+{
+  "stateCode": "FL",
+  "stateName": "Florida",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 30,
+    "deadlineType": "calendar",
+    "maxDepositMonths": null,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 30,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per Florida Statute 83.49, the landlord must return the deposit within 15 days if no claim is made, or within 30 days with an itemized claim by certified mail.",
+    "Tenant has 15 days to object to the claim after receiving notice."
+  ],
+  "letterTemplate": {
+    "id": "fl_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block", "return_method"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes"]
+  },
+  "notes": [
+    "Florida requires certified mail for deposit claim notices.",
+    "If no deductions, return deposit within 15 days. With deductions, itemized notice within 30 days."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0000-0099/0083/Sections/0083.49.html"
+}
