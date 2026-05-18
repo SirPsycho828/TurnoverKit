@@ -1,0 +1,35 @@
+{
+  "stateCode": "NY",
+  "stateName": "New York",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 14,
+    "deadlineType": "calendar",
+    "maxDepositMonths": 1,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 14,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per NY General Obligations Law 7-108, the landlord must return the deposit within 14 days of move-out.",
+    "Landlord must provide an itemized statement of any deductions."
+  ],
+  "letterTemplate": {
+    "id": "ny_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "return_method"]
+  },
+  "notes": [
+    "New York requires return within a reasonable time, generally interpreted as 14 days.",
+    "Deposit must be held in an interest-bearing account for buildings with 6+ units."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://www.nysenate.gov/legislation/laws/GOB/7-108"
+}

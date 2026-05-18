@@ -1,0 +1,36 @@
+{
+  "stateCode": "IL",
+  "stateName": "Illinois",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 45,
+    "deadlineType": "calendar",
+    "maxDepositMonths": null,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 30,
+    "receiptRequired": true
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per IL Security Deposit Return Act 765 ILCS 710, the landlord must provide an itemized statement of damages within 30 days.",
+    "The deposit must be returned within 45 days if no deductions, or within 30 days of providing the damage statement."
+  ],
+  "letterTemplate": {
+    "id": "il_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "return_method"]
+  },
+  "notes": [
+    "Illinois has a 30-day deadline for the itemized statement and 45-day deadline for refund return.",
+    "Properties with 5+ units have stricter rules including interest requirements. Check local ordinances.",
+    "Paid receipts or estimates must accompany the itemized statement."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=2202"
+}

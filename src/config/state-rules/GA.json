@@ -1,0 +1,36 @@
+{
+  "stateCode": "GA",
+  "stateName": "Georgia",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 30,
+    "deadlineType": "calendar",
+    "maxDepositMonths": null,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 30,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": 3,
+    "tenantRightToAttend": true,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per Georgia Code 44-7-34, the landlord must return the deposit within 30 days with an itemized list of deductions.",
+    "Landlord must conduct an inspection and provide a list of pre-existing damage at move-in."
+  ],
+  "letterTemplate": {
+    "id": "ga_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "return_method"]
+  },
+  "notes": [
+    "Georgia requires a pre-move-in inspection list documenting existing damage.",
+    "The landlord should conduct a move-out inspection with the tenant if possible.",
+    "Failure to provide a move-in list may limit the landlord's ability to withhold from the deposit."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://law.justia.com/codes/georgia/title-44/chapter-7/article-2/section-44-7-34/"
+}

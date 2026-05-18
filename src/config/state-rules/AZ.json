@@ -1,0 +1,35 @@
+{
+  "stateCode": "AZ",
+  "stateName": "Arizona",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 14,
+    "deadlineType": "calendar",
+    "maxDepositMonths": null,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 14,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per Arizona Revised Statutes 33-1321, the landlord must return the deposit within 14 days of move-out.",
+    "An itemized statement of deductions must accompany any amount withheld."
+  ],
+  "letterTemplate": {
+    "id": "az_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "return_method"]
+  },
+  "notes": [
+    "Arizona has one of the shortest deposit return deadlines at 14 days.",
+    "Landlord must provide an itemized statement for any amount withheld from the deposit."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://www.azleg.gov/ars/33/01321.htm"
+}

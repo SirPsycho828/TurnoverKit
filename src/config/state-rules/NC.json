@@ -1,0 +1,36 @@
+{
+  "stateCode": "NC",
+  "stateName": "North Carolina",
+  "supported": true,
+  "deposit": {
+    "returnDeadlineDays": 30,
+    "deadlineType": "calendar",
+    "maxDepositMonths": 2,
+    "interestRequired": false,
+    "interestRate": null,
+    "itemizationRequired": true,
+    "itemizationDeadlineDays": 30,
+    "receiptRequired": false
+  },
+  "inspection": {
+    "noticeDays": null,
+    "tenantRightToAttend": false,
+    "noticeMethod": "any"
+  },
+  "disclosures": [
+    "Per NC General Statutes 42-52, the deposit must be returned within 30 days of lease termination.",
+    "An interim accounting is permitted if deductions cannot be finalized within 30 days due to pending repairs."
+  ],
+  "letterTemplate": {
+    "id": "nc_itemization_v1",
+    "requiredSections": ["itemized_list", "total_deductions", "refund_amount", "disclosure_block"],
+    "editableSections": ["item_descriptions", "item_amounts", "landlord_notes", "return_method"]
+  },
+  "notes": [
+    "North Carolina allows an interim accounting if repairs cannot be completed within 30 days.",
+    "The final accounting must be provided within 60 days of move-out.",
+    "Deposit cannot exceed two months' rent for month-to-month, or one and a half months for terms longer than month-to-month."
+  ],
+  "lastUpdated": "2026-01-15",
+  "sourceUrl": "https://www.ncleg.gov/EnactedLegislation/Statutes/PDF/ByArticle/Chapter_42/Article_6.pdf"
+}
