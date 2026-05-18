@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Home } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
 import type { Property, Turnover, WithId } from '@/types';
 
 export function DashboardPage() {
@@ -49,6 +50,9 @@ export function DashboardPage() {
       unsubTurnovers();
     };
   }, [user]);
+
+  // Fire deadline notifications for active turnovers
+  useNotifications(turnovers);
 
   const getActiveTurnoverCount = (propertyId: string) =>
     turnovers.filter(

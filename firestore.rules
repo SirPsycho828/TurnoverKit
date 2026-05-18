@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helpers ---
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // --- Users ---
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // --- Properties ---
+    match /properties/{propertyId} {
+      allow read: if isAuth() && resource.data.landlordId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.landlordId == request.auth.uid;
+      allow update: if isAuth() && resource.data.landlordId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.landlordId == request.auth.uid;
+    }
+
+    // --- Turnovers ---
+    match /turnovers/{turnoverId} {
+      allow read: if isAuth() && resource.data.landlordId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.landlordId == request.auth.uid;
+      allow update: if isAuth() && resource.data.landlordId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.landlordId == request.auth.uid;
+
+      // Portal read access via token match (no auth needed)
+      allow read: if resource.data.portalToken == request.auth.token.portalToken;
+
+      // Rooms subcollection
+      match /rooms/{roomId} {
+        allow read, write: if isAuth()
+          && get(/databases/$(database)/documents/turnovers/$(turnoverId)).data.landlordId == request.auth.uid;
+      }
+
+      // Deductions subcollection
+      match /deductions/{deductionId} {
+        allow read: if isAuth()
+          && get(/databases/$(database)/documents/turnovers/$(turnoverId)).data.landlordId == request.auth.uid;
+        allow read: if true; // Portal access (deductions visible to tenants)
+        allow create, update, delete: if isAuth()
+          && get(/databases/$(database)/documents/turnovers/$(turnoverId)).data.landlordId == request.auth.uid;
+      }
+
+      // Tenant Responses subcollection (tenants can create, landlords can read/update)
+      match /tenantResponses/{responseId} {
+        allow read: if isAuth()
+          && get(/databases/$(database)/documents/turnovers/$(turnoverId)).data.landlordId == request.auth.uid;
+        allow create: if true; // Portal can submit responses
+        allow update: if isAuth()
+          && get(/databases/$(database)/documents/turnovers/$(turnoverId)).data.landlordId == request.auth.uid;
+      }
+
+      // Signatures subcollection
+      match /signatures/{sigId} {
+        allow read: if isAuth()
+          && get(/databases/$(database)/documents/turnovers/$(turnoverId)).data.landlordId == request.auth.uid;
+        allow create: if true; // Both landlord and tenant can sign
+      }
+    }
+
+    // --- Vendors ---
+    match /vendors/{vendorId} {
+      allow read: if isAuth() && resource.data.landlordId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.landlordId == request.auth.uid;
+      allow update: if isAuth() && resource.data.landlordId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.landlordId == request.auth.uid;
+    }
+  }
+}

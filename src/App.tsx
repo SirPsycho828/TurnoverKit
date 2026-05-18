@@ -9,6 +9,15 @@ import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { OnboardingPage } from '@/pages/auth/OnboardingPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
+import { PropertyCreatePage } from '@/pages/property/PropertyCreatePage';
+import { PropertyDetailPage } from '@/pages/property/PropertyDetailPage';
+import { TurnoverCreatePage } from '@/pages/turnover/TurnoverCreatePage';
+import { TurnoverDetailPage } from '@/pages/turnover/TurnoverDetailPage';
+import { VendorsPage } from '@/pages/vendor/VendorsPage';
+import { SettingsPage } from '@/pages/settings/SettingsPage';
+import { InspectionPage } from '@/pages/turnover/InspectionPage';
+import { DeductionsPage } from '@/pages/turnover/DeductionsPage';
+import { TenantPortalPage } from '@/pages/portal/TenantPortalPage';
 
 function App() {
   return (
@@ -45,16 +54,18 @@ function App() {
             }
           >
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/properties/new" element={<PlaceholderPage title="Add Property" />} />
-            <Route path="/properties/:id" element={<PlaceholderPage title="Property Detail" />} />
-            <Route path="/turnovers/new" element={<PlaceholderPage title="New Turnover" />} />
-            <Route path="/turnovers/:id" element={<PlaceholderPage title="Turnover Detail" />} />
-            <Route path="/vendors" element={<PlaceholderPage title="Vendors" />} />
-            <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+            <Route path="/properties/new" element={<PropertyCreatePage />} />
+            <Route path="/properties/:id" element={<PropertyDetailPage />} />
+            <Route path="/turnovers/new" element={<TurnoverCreatePage />} />
+            <Route path="/turnovers/:id" element={<TurnoverDetailPage />} />
+            <Route path="/turnovers/:id/inspect" element={<InspectionPage />} />
+            <Route path="/turnovers/:id/deductions" element={<DeductionsPage />} />
+            <Route path="/vendors" element={<VendorsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
 
           {/* Portal route (no auth required - magic link) */}
-          <Route path="/portal/:token" element={<PlaceholderPage title="Tenant Portal" />} />
+          <Route path="/portal/:token" element={<TenantPortalPage />} />
 
           {/* Default redirect */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -62,15 +73,6 @@ function App() {
         <Toaster position="bottom-center" />
       </AuthProvider>
     </BrowserRouter>
-  );
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <h2 className="text-xl font-semibold text-muted-foreground">{title}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Coming soon</p>
-    </div>
   );
 }
 
