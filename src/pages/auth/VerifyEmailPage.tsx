@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Mail, CheckCircle2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 
 export function VerifyEmailPage() {
@@ -11,7 +11,6 @@ export function VerifyEmailPage() {
   const [resent, setResent] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Poll for email verification
   useEffect(() => {
     if (authState !== 'unverified') return;
 
@@ -38,33 +37,50 @@ export function VerifyEmailPage() {
   };
 
   return (
-    <AuthLayout>
-      <Card>
-        <CardHeader className="items-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-            <Mail className="h-6 w-6 text-primary" />
+    <AuthLayout title="Check your email" subtitle="One last step to get started">
+      <Card className="border-border/60 shadow-md">
+        <CardContent className="pt-6">
+          <div className="space-y-5 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5">
+              <Mail className="h-7 w-7 text-primary" />
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">
+                We sent a verification link to
+              </p>
+              <p className="mt-1 font-heading text-sm font-600 text-foreground">
+                {user?.email}
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-muted/60 px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                Click the link in the email to verify your account. This page updates automatically.
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleResend}
+              disabled={loading || resent}
+            >
+              {resent ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-emerald" />
+                  Email sent
+                </>
+              ) : (
+                'Resend verification email'
+              )}
+            </Button>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald" />
+              Waiting for verification...
+            </div>
           </div>
-          <CardTitle className="text-center text-xl">Check Your Email</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            We sent a verification link to{' '}
-            <span className="font-medium text-foreground">{user?.email}</span>.
-            Click the link to verify your account.
-          </p>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleResend}
-            disabled={loading || resent}
-          >
-            {resent ? 'Email sent' : 'Resend verification email'}
-          </Button>
-
-          <p className="text-xs text-muted-foreground">
-            This page will update automatically once you verify.
-          </p>
         </CardContent>
       </Card>
     </AuthLayout>

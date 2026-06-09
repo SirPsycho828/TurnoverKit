@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { TenantResponse, Deduction, DisputeResolution, WithId } from '@/types';
 
 interface Props {

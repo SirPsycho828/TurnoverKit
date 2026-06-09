@@ -1,7 +1,6 @@
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1920;
 const QUALITY = 0.8;
-const MAX_SIZE_BYTES = 500 * 1024; // 500KB target
 
 export async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
