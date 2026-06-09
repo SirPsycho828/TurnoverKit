@@ -8,13 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { User, MapPin, Info, LifeBuoy, Play } from 'lucide-react';
+import { User, MapPin, Info, LifeBuoy, Play, RotateCcw } from 'lucide-react';
 import { useAppTour } from '@/components/onboarding/AppTour';
+import { useSetupWizard } from '@/hooks/useSetupWizard';
 
 export function SettingsPage() {
   const { user, profile } = useAuthContext();
   const navigate = useNavigate();
   const { startTour } = useAppTour();
+  const { resetWizard } = useSetupWizard();
   const [state, setState] = useState(profile?.state ?? '');
   const [saving, setSaving] = useState(false);
 
@@ -113,6 +115,17 @@ export function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              await resetWizard();
+              navigate('/setup');
+            }}
+          >
+            <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+            Restart Setup Wizard
+          </Button>
           <Button
             variant="outline"
             className="w-full"

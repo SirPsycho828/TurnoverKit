@@ -170,7 +170,9 @@ Gaps:
 - **Findings resolved:** 18/18 (0 remaining)
 - **Average page score (modified pages):** 3.0/9 -> 5.9/9
 - **Workflows fixed:** First-Time Setup (Bumpy -> Smooth), Add Property (Smooth), Start Turnover (Bumpy -> Smooth), Complete Inspection (Bumpy -> Smooth), Draft Deductions (Bumpy -> Smooth), Finalize & Send (Bumpy -> Smooth), Tenant Review (Smooth), Manage Vendors (Smooth)
-- **Components created:** NextStepCard (`src/components/ux/NextStepCard.tsx`), GuidanceTip (`src/components/ux/GuidanceTip.tsx`), AppTour (`src/components/onboarding/AppTour.tsx`), TourTooltip (`src/components/onboarding/TourTooltip.tsx`)
-- **Onboarding:** 5-stop app tour (react-joyride v3.1.0) — auto-starts on first visit, skippable, replayable from Settings
-- **Tour stops:** Dashboard stats, Add Property, Next Step cards, Vendors nav, Settings nav
-- **Pages modified:** 11 (+ AppLayout for tour mount and data-tour attributes)
+- **Components created:** NextStepCard (`src/components/ux/NextStepCard.tsx`), GuidanceTip (`src/components/ux/GuidanceTip.tsx`), AppTour (`src/components/onboarding/AppTour.tsx`), TourTooltip (`src/components/onboarding/TourTooltip.tsx`), SetupWizardPage (`src/pages/onboarding/SetupWizardPage.tsx`), useSetupWizard (`src/hooks/useSetupWizard.ts`)
+- **Onboarding:** Setup wizard (3 steps) + site tour (5 stops)
+  - Setup wizard: Welcome → Add Property → Done (Firestore-persisted, existing users backfilled)
+  - Site tour: 5-stop react-joyride walkthrough, auto-starts after wizard
+  - Both re-runnable from Settings > Need Help
+- **Pages modified:** 13 (11 UX fixes + OnboardingPage redirect + DashboardPage wizard check + SettingsPage restart buttons)

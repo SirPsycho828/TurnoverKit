@@ -184,18 +184,41 @@ Gaps:
 - [x] TypeScript build passes clean
 
 ## Phase 6 (Onboarding) — Complete
-- Setup Wizard: Skipped (app only needs 1 entity before core workflow — below 3+ threshold)
-- App Tour: Built (5 stops)
-  - Stop 1: Dashboard stats — "Your command center"
-  - Stop 2: Add Property button — "Start here"
-  - Stop 3: Next Step cards — "Follow the workflow"
-  - Stop 4: Vendors nav — "Vendor directory"
-  - Stop 5: Settings nav — "Your preferences"
+- [x] Step 1: Fetch library documentation (react-joyride v3)
+- [x] Step 2: Design the setup wizard (3 steps: Welcome, Add Property, Done)
+- [x] Step 3: Design the app tour (5 stops)
+- [x] Step 4: Design settings integration (restart wizard + replay tour)
+- [x] Step 5: Implement the setup wizard
+- [x] Step 6: Implement the site tour
+- [x] Step 7: Implement settings integration
+- [x] Step 8: Verify build
+- [x] Step 9: Commit
+- [x] Step 10: Update state
+
+### Setup Wizard (3 steps)
+- Step 1: Welcome — explains workflow (Property → Turnover → Inspect → Deductions → Finalize)
+- Step 2: Add First Property — simplified property creation with address + deposit
+- Step 3: Done — celebration screen, summary of what was created, CTA to dashboard
+- State: Firestore `users/{uid}/metadata/onboarding` doc
+- Backfill: existing users with properties auto-marked as completed
+- Route: `/setup` (protected, outside app shell)
+- Components: src/pages/onboarding/SetupWizardPage.tsx, src/hooks/useSetupWizard.ts
+
+### App Tour (5 stops)
+- Stop 1: Dashboard stats — "Your command center"
+- Stop 2: Add Property button — "Start here"
+- Stop 3: Next Step cards — "Follow the workflow"
+- Stop 4: Vendors nav — "Vendor directory"
+- Stop 5: Settings nav — "Your preferences"
 - Library: react-joyride v3.1.0
 - Custom tooltip: TourTooltip.tsx (matches design system)
-- Auto-starts on first visit, skippable, localStorage persistence
-- Replay from Settings > Need Help > Replay App Tour
+- Auto-starts after wizard completion, skippable, localStorage persistence
 - Components: src/components/onboarding/{AppTour,TourTooltip}.tsx
+
+### Settings Integration
+- "Restart Setup Wizard" button — resets Firestore state, navigates to /setup
+- "Replay App Tour" button — clears localStorage, starts tour, navigates to dashboard
+- Located in: Settings > Need Help? card
 
 ## Phase 2 (Workflow Audit) — Complete
 - [x] Step 1: Load references (workflow-gap-types.md)

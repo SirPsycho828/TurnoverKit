@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, getDoc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,24 @@ export function DashboardPage() {
   const [properties, setProperties] = useState<WithId<Property>[]>([]);
   const [turnovers, setTurnovers] = useState<WithId<Turnover>[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Check if setup wizard is completed; redirect if not, backfill existing users
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      const ref = doc(db, 'users', user.uid, 'metadata', 'onboarding');
+      const snap = await getDoc(ref);
+      if (snap.exists() && snap.data().wizardCompleted) return;
+      // Backfill: existing users with properties skip the wizard
+      const existing = await getDocs(query(collection(db, 'properties'), where('landlordId', '==', user.uid)));
+      if (!existing.empty) {
+        await setDoc(ref, { wizardCompleted: true, wizardStepsCompleted: ['property'], wizardSkippedSteps: [], completedAt: serverTimestamp() });
+        return;
+      }
+      navigate('/setup', { replace: true });
+    };
+    check();
+  }, [user, navigate]);
 
   useEffect(() => {
     if (!user) return;

@@ -18,12 +18,24 @@ import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { InspectionPage } from '@/pages/turnover/InspectionPage';
 import { DeductionsPage } from '@/pages/turnover/DeductionsPage';
 import { TenantPortalPage } from '@/pages/portal/TenantPortalPage';
+import { LandingPage } from '@/pages/LandingPage';
+import { SetupWizardPage } from '@/pages/onboarding/SetupWizardPage';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Landing page — public, redirects to dashboard if authenticated */}
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            }
+          />
+
           {/* Public auth routes */}
           <Route
             path="/signin"
@@ -44,6 +56,16 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
+
+          {/* Setup wizard — protected but outside app shell */}
+          <Route
+            path="/setup"
+            element={
+              <ProtectedRoute>
+                <SetupWizardPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected app routes */}
           <Route
