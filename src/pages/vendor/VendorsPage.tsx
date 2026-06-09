@@ -5,13 +5,14 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Phone, Mail, Trash2, Wrench } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Plus, Phone, Mail, Trash2, Wrench, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { GuidanceTip } from '@/components/ux/GuidanceTip';
 import type { Vendor, VendorSpecialty, WithId } from '@/types';
 
 const SPECIALTIES: { value: VendorSpecialty; label: string }[] = [
@@ -22,6 +23,15 @@ const SPECIALTIES: { value: VendorSpecialty; label: string }[] = [
   { value: 'painting', label: 'Painting' },
   { value: 'other', label: 'Other' },
 ];
+
+const SPECIALTY_COLORS: Record<VendorSpecialty, string> = {
+  cleaning: 'border-l-emerald-500',
+  general_repair: 'border-l-blue-500',
+  plumbing: 'border-l-cyan-500',
+  electrical: 'border-l-amber-500',
+  painting: 'border-l-violet-500',
+  other: 'border-l-gray-400',
+};
 
 const vendorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -84,41 +94,50 @@ export function VendorsPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5">
+          <Loader2 className="h-6 w-6 animate-spin text-emerald" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Vendors</h2>
+        <h2 className="font-heading text-xl font-700 tracking-tight">Vendors</h2>
         <Button size="sm" onClick={() => setShowAdd(true)}>
           <Plus className="mr-1 h-4 w-4" /> Add Vendor
         </Button>
       </div>
 
+      <GuidanceTip id="vendors-dispatch">
+        Keep your go-to contractors here. During a turnover, you can quickly reference their contact info for repairs and cleaning.
+      </GuidanceTip>
+
       {vendors.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center py-12">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-              <Wrench className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <p className="mb-4 text-sm text-muted-foreground">
-              No vendors yet. Add your preferred vendors for quick dispatch during turnovers.
-            </p>
-            <Button onClick={() => setShowAdd(true)}>Add Your First Vendor</Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Wrench}
+          title="No vendors yet"
+          description="Add your preferred vendors for quick dispatch during turnovers."
+          actionLabel="Add Your First Vendor"
+          onAction={() => setShowAdd(true)}
+        />
       ) : (
         <div className="space-y-3">
           {vendors.map((v) => (
-            <Card key={v.id}>
+            <Card
+              key={v.id}
+              className={`border-border/60 border-l-2 ${SPECIALTY_COLORS[v.specialty] ?? 'border-l-gray-400'}`}
+            >
               <CardContent className="py-3">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{v.name}</p>
-                    <Badge variant="outline" className="mt-1">
+                    <p className="font-heading font-600">{v.name}</p>
+                    <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-500 text-muted-foreground">
                       {SPECIALTIES.find((s) => s.value === v.specialty)?.label ?? v.specialty}
-                    </Badge>
+                    </span>
                     <div className="mt-2 space-y-1">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Mail className="h-3.5 w-3.5" /> {v.email}
@@ -133,7 +152,8 @@ export function VendorsPage() {
                   </div>
                   <button
                     onClick={() => setShowDelete(v.id)}
-                    className="rounded-lg p-2 text-muted-foreground hover:text-destructive"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-destructive active:scale-95"
+                    aria-label={`Delete ${v.name}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -148,34 +168,38 @@ export function VendorsPage() {
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Vendor</DialogTitle>
+            <DialogTitle className="font-heading">Add Vendor</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAdd} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="vendorName">Name</Label>
-              <Input id="vendorName" placeholder="ABC Cleaning Co." {...form.register('name')} />
+              <Label htmlFor="vendorName" className="text-xs font-500 text-muted-foreground">Name</Label>
+              <Input id="vendorName" className="h-11" placeholder="ABC Cleaning Co." {...form.register('name')} />
               {form.formState.errors.name && <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="vendorEmail">Email</Label>
-              <Input id="vendorEmail" type="email" placeholder="vendor@example.com" {...form.register('email')} />
+              <Label htmlFor="vendorEmail" className="text-xs font-500 text-muted-foreground">Email</Label>
+              <Input id="vendorEmail" className="h-11" type="email" placeholder="vendor@example.com" {...form.register('email')} />
               {form.formState.errors.email && <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="vendorPhone">Phone (optional)</Label>
-              <Input id="vendorPhone" type="tel" placeholder="(555) 123-4567" {...form.register('phone')} />
+              <Label htmlFor="vendorPhone" className="text-xs font-500 text-muted-foreground">Phone (optional)</Label>
+              <Input id="vendorPhone" className="h-11" type="tel" placeholder="(555) 123-4567" {...form.register('phone')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="vendorSpecialty">Specialty</Label>
-              <select id="vendorSpecialty" className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...form.register('specialty')}>
+              <Label htmlFor="vendorSpecialty" className="text-xs font-500 text-muted-foreground">Specialty</Label>
+              <select
+                id="vendorSpecialty"
+                className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...form.register('specialty')}
+              >
                 <option value="">Select...</option>
                 {SPECIALTIES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
               {form.formState.errors.specialty && <p className="text-sm text-destructive">{form.formState.errors.specialty.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="vendorNotes">Notes (optional)</Label>
-              <Input id="vendorNotes" placeholder="Preferred hours, rates..." {...form.register('notes')} />
+              <Label htmlFor="vendorNotes" className="text-xs font-500 text-muted-foreground">Notes (optional)</Label>
+              <Input id="vendorNotes" className="h-11" placeholder="Preferred hours, rates..." {...form.register('notes')} />
             </div>
             <DialogFooter>
               <Button type="submit" className="w-full" disabled={saving}>
@@ -190,7 +214,7 @@ export function VendorsPage() {
       <Dialog open={!!showDelete} onOpenChange={() => setShowDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Vendor?</DialogTitle>
+            <DialogTitle className="font-heading">Delete Vendor?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">This vendor will be removed from your list.</p>
           <DialogFooter className="gap-2">

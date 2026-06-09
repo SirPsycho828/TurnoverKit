@@ -13,17 +13,19 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { dollarsToCents, formatCents, centsToDollars } from '@/lib/currency';
+import { dollarsToCents, formatCents } from '@/lib/currency';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Trash2, DollarSign, AlertCircle } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ArrowLeft, Plus, Trash2, DollarSign, AlertCircle, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { GuidanceTip } from '@/components/ux/GuidanceTip';
 import type { Turnover, Deduction, DeductionCategory, Room, WithId } from '@/types';
 
 const CATEGORIES: { value: DeductionCategory; label: string }[] = [
@@ -33,6 +35,14 @@ const CATEGORIES: { value: DeductionCategory; label: string }[] = [
   { value: 'damage', label: 'Damage' },
   { value: 'other', label: 'Other' },
 ];
+
+const CATEGORY_BORDER_COLORS: Record<string, string> = {
+  cleaning: 'border-l-emerald',
+  repair: 'border-l-blue-500',
+  replacement: 'border-l-amber-500',
+  damage: 'border-l-red-500',
+  other: 'border-l-gray-400',
+};
 
 const deductionSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -133,7 +143,13 @@ export function DeductionsPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5">
+          <Loader2 className="h-6 w-6 animate-spin text-emerald" />
+        </div>
+      </div>
+    );
   }
 
   if (!turnover) {
@@ -149,30 +165,41 @@ export function DeductionsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <button onClick={() => navigate(`/turnovers/${id}`)} className="rounded-lg p-2 hover:bg-muted">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate(`/turnovers/${id}`)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+          aria-label="Back to turnover"
+        >
+          <ArrowLeft className="h-4 w-4" />
         </button>
-        <h2 className="flex-1 text-xl font-semibold">Deductions</h2>
-        <Button size="sm" onClick={() => setShowAdd(true)}>
+        <h2 className="flex-1 font-heading text-xl font-700 tracking-tight">Deductions</h2>
+        <Button className="h-9 font-600" size="sm" onClick={() => setShowAdd(true)}>
           <Plus className="mr-1 h-4 w-4" /> Add
         </Button>
       </div>
 
+      <GuidanceTip id="deductions-categories">
+        Only deduct for damage beyond normal wear and tear. Cleaning, repairs, and replacements must be itemized with specific amounts.
+      </GuidanceTip>
+
       {/* Summary card */}
-      <Card>
-        <CardContent className="py-3 space-y-1 text-sm">
+      <Card className="border-border/60 bg-muted/30">
+        <CardContent className="py-4 space-y-1.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Total Deposit</span>
-            <span>{formatCents(totalDeposit)}</span>
+            <span className="text-xs font-500 text-muted-foreground">Total Deposit</span>
+            <span className="tabular-nums">{formatCents(totalDeposit)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Total Deductions</span>
-            <span className="text-destructive">-{formatCents(totalDeductionsCents)}</span>
+            <span className="text-xs font-500 text-muted-foreground">Total Deductions</span>
+            <span className="tabular-nums text-destructive">-{formatCents(totalDeductionsCents)}</span>
           </div>
-          <div className="flex justify-between border-t pt-1 font-medium">
-            <span>Refund Due</span>
-            <span className={overDeducted ? 'text-destructive' : 'text-success'}>
+          <div className="flex justify-between border-t pt-2">
+            <span className="font-medium">Refund Due</span>
+            <span className={cn(
+              'text-lg font-heading font-700 tabular-nums',
+              overDeducted ? 'text-destructive' : 'text-emerald',
+            )}>
               {formatCents(refundAmount)}
             </span>
           </div>
@@ -180,8 +207,8 @@ export function DeductionsPage() {
       </Card>
 
       {overDeducted && (
-        <div className="flex items-start gap-2 rounded-lg bg-warning/10 p-3">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+        <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <p className="text-sm">
             Deductions exceed the total deposit. You may need to send a balance-due invoice.
           </p>
@@ -190,35 +217,37 @@ export function DeductionsPage() {
 
       {/* Deduction list */}
       {activeDeductions.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center py-8">
-            <DollarSign className="mb-2 h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              No deductions yet. Add deductions for damages, cleaning, or repairs.
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={DollarSign}
+          title="No deductions yet"
+          description="Add deductions for damages, cleaning, or repairs."
+          actionLabel="Add Deduction"
+          onAction={() => setShowAdd(true)}
+        />
       ) : (
         <div className="space-y-2">
           {activeDeductions.map((d) => (
-            <Card key={d.id}>
+            <Card key={d.id} className={cn(
+              'border-border/60 border-l-[3px]',
+              CATEGORY_BORDER_COLORS[d.category] || 'border-l-gray-400',
+            )}>
               <CardContent className="flex items-start gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{d.description}</p>
                   <div className="mt-1 flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-500 text-muted-foreground">
                       {CATEGORIES.find((c) => c.value === d.category)?.label ?? d.category}
-                    </Badge>
+                    </span>
                     <span className="text-xs text-muted-foreground">{d.roomName}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{formatCents(d.amount)}</span>
+                  <span className="text-sm font-600 tabular-nums">{formatCents(d.amount)}</span>
                   <button
                     onClick={() => handleRemove(d.id)}
-                    className="rounded p-1 text-muted-foreground hover:text-destructive"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </CardContent>
@@ -228,7 +257,7 @@ export function DeductionsPage() {
       )}
 
       {/* Finalize button */}
-      <Button className="w-full" onClick={handleFinalize}>
+      <Button className="h-11 w-full font-600" onClick={handleFinalize}>
         Save & Update Turnover
       </Button>
 
@@ -240,26 +269,26 @@ export function DeductionsPage() {
           </DialogHeader>
           <form onSubmit={handleAdd} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="dedDesc">Description</Label>
-              <Input id="dedDesc" placeholder="Carpet stain in bedroom" {...form.register('description')} />
+              <Label htmlFor="dedDesc" className="text-xs font-500 text-muted-foreground">Description</Label>
+              <Input id="dedDesc" className="h-11" placeholder="Carpet stain in bedroom" {...form.register('description')} />
               {form.formState.errors.description && <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dedAmount">Amount ($)</Label>
-              <Input id="dedAmount" type="number" step="0.01" min="0" placeholder="150.00" {...form.register('amount')} />
+              <Label htmlFor="dedAmount" className="text-xs font-500 text-muted-foreground">Amount ($)</Label>
+              <Input id="dedAmount" className="h-11" type="number" step="0.01" min="0" placeholder="150.00" {...form.register('amount')} />
               {form.formState.errors.amount && <p className="text-sm text-destructive">{form.formState.errors.amount.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dedCategory">Category</Label>
-              <select id="dedCategory" className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...form.register('category')}>
+              <Label htmlFor="dedCategory" className="text-xs font-500 text-muted-foreground">Category</Label>
+              <select id="dedCategory" className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...form.register('category')}>
                 <option value="">Select...</option>
                 {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
               {form.formState.errors.category && <p className="text-sm text-destructive">{form.formState.errors.category.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dedRoom">Room</Label>
-              <select id="dedRoom" className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...form.register('roomName')}>
+              <Label htmlFor="dedRoom" className="text-xs font-500 text-muted-foreground">Room</Label>
+              <select id="dedRoom" className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...form.register('roomName')}>
                 <option value="">Select...</option>
                 {rooms.map((r) => <option key={r.id} value={r.roomName}>{r.roomName}</option>)}
                 <option value="General">General / Whole Unit</option>
@@ -267,7 +296,7 @@ export function DeductionsPage() {
               {form.formState.errors.roomName && <p className="text-sm text-destructive">{form.formState.errors.roomName.message}</p>}
             </div>
             <DialogFooter>
-              <Button type="submit" className="w-full" disabled={saving}>
+              <Button type="submit" className="h-11 w-full font-600" disabled={saving}>
                 {saving ? 'Adding...' : 'Add Deduction'}
               </Button>
             </DialogFooter>

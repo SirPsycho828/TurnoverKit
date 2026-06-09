@@ -3,17 +3,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { collection, query, where, getDocs, addDoc, doc, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { getStateRules, isStateSupported } from '@/config/state-rules';
-import { generateMilestones } from '@/lib/timeline';
+import { getStateRules } from '@/config/state-rules';
 import { dollarsToCents, formatCents, centsToDollars } from '@/lib/currency';
 import { addDays, format } from 'date-fns';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, AlertCircle, Shield } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Shield, Check, Loader2 } from 'lucide-react';
 import type { Property, WithId, FrozenStateRules } from '@/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,6 +29,8 @@ function generateToken(): string {
   return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
+const STEP_LABELS = ['Property', 'Tenant', 'Deposit', 'Review'];
+
 export function TurnoverCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,8 +45,7 @@ export function TurnoverCreatePage() {
   const [petDeposit, setPetDeposit] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const totalSteps = 4;
+  const [totalPropertyCount, setTotalPropertyCount] = useState(0);
 
   const tenantForm = useForm<TenantInput>({
     resolver: zodResolver(tenantSchema),
@@ -72,6 +71,7 @@ export function TurnoverCreatePage() {
       );
 
       const eligible = props.filter((p) => !activePropIds.has(p.id));
+      setTotalPropertyCount(props.length);
       setProperties(eligible);
 
       if (preselectedId) {
@@ -132,10 +132,8 @@ export function TurnoverCreatePage() {
     const depositDueDate = addDays(moveOutDate, rules.deposit.returnDeadlineDays);
 
     try {
-      const batch = writeBatch(db);
-      const turnoverRef = doc(collection(db, 'turnovers'));
-
-      batch.set(turnoverRef, {
+      // Create turnover document first (rooms rules need parent to exist)
+      const turnoverRef = await addDoc(collection(db, 'turnovers'), {
         landlordId: user.uid,
         propertyId: selectedProperty.id,
         tenantName: tenantData.name,
@@ -162,7 +160,8 @@ export function TurnoverCreatePage() {
         updatedAt: serverTimestamp(),
       });
 
-      // Create room subcollections from property room list
+      // Now batch the room subcollections (parent exists, rules can read it)
+      const batch = writeBatch(db);
       for (let i = 0; i < selectedProperty.rooms.length; i++) {
         const roomRef = doc(collection(db, 'turnovers', turnoverRef.id, 'rooms'));
         batch.set(roomRef, {
@@ -174,10 +173,12 @@ export function TurnoverCreatePage() {
           createdAt: serverTimestamp(),
         });
       }
-
       await batch.commit();
+
+      toast.success('Turnover created');
       navigate(`/turnovers/${turnoverRef.id}`);
-    } catch {
+    } catch (err) {
+      console.error('[TurnoverCreate] error:', err);
       setSaving(false);
     }
   };
@@ -192,29 +193,69 @@ export function TurnoverCreatePage() {
     : null;
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5">
+          <Loader2 className="h-6 w-6 animate-spin text-emerald" />
+        </div>
+      </div>
+    );
   }
 
   if (properties.length === 0) {
     return (
       <div className="space-y-4 text-center">
-        <p className="text-muted-foreground">All your properties have active turnovers. Finish or archive one to start a new turnover.</p>
-        <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+        <p className="text-muted-foreground">
+          {totalPropertyCount === 0
+            ? "You don't have any properties yet. Add a property first to start a turnover."
+            : 'All your properties have active turnovers. Finish or archive one to start a new turnover.'}
+        </p>
+        <Button onClick={() => navigate(totalPropertyCount === 0 ? '/properties/new' : '/dashboard')}>
+          {totalPropertyCount === 0 ? 'Add Property' : 'Back to Dashboard'}
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <button onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))} className="rounded-lg p-2 hover:bg-muted">
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+          aria-label="Go back"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h2 className="text-xl font-semibold">Start Turnover</h2>
+        <h2 className="font-heading text-xl font-700 tracking-tight">Start Turnover</h2>
       </div>
 
-      <Progress value={(step / totalSteps) * 100} className="h-1" />
-      <p className="text-xs text-muted-foreground">Step {step} of {totalSteps}</p>
+      {/* Step indicator */}
+      <div className="flex items-center justify-between px-1">
+        {STEP_LABELS.map((label, i) => {
+          const stepNum = i + 1;
+          const isCompleted = step > stepNum;
+          const isActive = step === stepNum;
+          return (
+            <div key={label} className="flex flex-col items-center gap-1.5">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-600 transition-colors ${
+                  isCompleted
+                    ? 'bg-emerald text-white'
+                    : isActive
+                      ? 'bg-emerald text-white'
+                      : 'border-2 border-muted-foreground/30 text-muted-foreground'
+                }`}
+              >
+                {isCompleted ? <Check className="h-4 w-4" /> : stepNum}
+              </div>
+              <span className={`text-xs font-500 ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Step 1: Select Property */}
       {step === 1 && (
@@ -223,7 +264,7 @@ export function TurnoverCreatePage() {
           {properties.map((p) => (
             <Card
               key={p.id}
-              className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedProperty?.id === p.id ? 'ring-2 ring-primary' : ''}`}
+              className={`cursor-pointer border-border/60 transition-all hover:bg-muted/50 ${selectedProperty?.id === p.id ? 'ring-2 ring-emerald' : ''}`}
               onClick={() => { setSelectedProperty(p); setStep(2); }}
             >
               <CardContent className="py-3">
@@ -237,22 +278,27 @@ export function TurnoverCreatePage() {
 
       {/* Step 2: Tenant Details */}
       {step === 2 && (
-        <Card>
-          <CardHeader><CardTitle>Tenant Details</CardTitle></CardHeader>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald/10 text-xs font-700 text-emerald">2</span>
+              Tenant Details
+            </CardTitle>
+          </CardHeader>
           <CardContent>
             <form onSubmit={handleTenantSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tenantName">Tenant Name</Label>
-                <Input id="tenantName" placeholder="John Smith" {...tenantForm.register('tenantName')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="tenantName" className="text-xs font-500 text-muted-foreground">Tenant Name</Label>
+                <Input id="tenantName" placeholder="John Smith" className="h-11" {...tenantForm.register('tenantName')} />
                 {tenantForm.formState.errors.tenantName && <p className="text-sm text-destructive">{tenantForm.formState.errors.tenantName.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="moveOutDate">Move-Out Date</Label>
-                <Input id="moveOutDate" type="date" {...tenantForm.register('moveOutDate')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="moveOutDate" className="text-xs font-500 text-muted-foreground">Move-Out Date</Label>
+                <Input id="moveOutDate" type="date" className="h-11" {...tenantForm.register('moveOutDate')} />
                 <p className="text-xs text-muted-foreground">When is the tenant's last day in the unit?</p>
                 {tenantForm.formState.errors.moveOutDate && <p className="text-sm text-destructive">{tenantForm.formState.errors.moveOutDate.message}</p>}
               </div>
-              <Button type="submit" className="w-full">Next</Button>
+              <Button type="submit" className="h-11 w-full font-600">Next</Button>
             </form>
           </CardContent>
         </Card>
@@ -260,42 +306,71 @@ export function TurnoverCreatePage() {
 
       {/* Step 3: Deposit Confirmation */}
       {step === 3 && selectedProperty && (
-        <Card>
-          <CardHeader><CardTitle>Confirm Deposit</CardTitle></CardHeader>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald/10 text-xs font-700 text-emerald">3</span>
+              Confirm Deposit
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">Confirm the deposit amounts for this tenant's lease.</p>
-            <div className="space-y-2">
-              <Label>Security Deposit ($)</Label>
-              <Input type="number" step="0.01" min="0" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs font-500 text-muted-foreground">Security Deposit ($)</Label>
+              <Input type="number" step="0.01" min="0" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className="h-11" />
             </div>
-            <div className="space-y-2">
-              <Label>Pet Deposit ($)</Label>
-              <Input type="number" step="0.01" min="0" value={petDeposit} onChange={(e) => setPetDeposit(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs font-500 text-muted-foreground">Pet Deposit ($)</Label>
+              <Input type="number" step="0.01" min="0" value={petDeposit} onChange={(e) => setPetDeposit(e.target.value)} className="h-11" />
             </div>
-            <Button className="w-full" onClick={() => setStep(4)}>Next</Button>
+            <Button className="h-11 w-full font-600" onClick={() => setStep(4)}>Next</Button>
           </CardContent>
         </Card>
       )}
 
       {/* Step 4: Review & Generate */}
       {step === 4 && selectedProperty && tenantData && stateRulesPreview && (
-        <Card>
-          <CardHeader><CardTitle>Review & Generate Timeline</CardTitle></CardHeader>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald/10 text-xs font-700 text-emerald">4</span>
+              Review & Generate Timeline
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2 rounded-lg bg-muted p-3 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Property</span><span className="font-medium">{selectedProperty.name}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Tenant</span><span className="font-medium">{tenantData.name}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Move-out</span><span className="font-medium">{format(new Date(tenantData.moveOutDate + 'T00:00:00'), 'MMM d, yyyy')}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Deposit</span><span className="font-medium">{formatCents(dollarsToCents(parseFloat(depositAmount) || 0))}</span></div>
+            {/* Review data list with alternating backgrounds */}
+            <div className="overflow-hidden rounded-lg border border-border/60">
+              <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+                <span className="text-muted-foreground">Property</span>
+                <span className="font-medium">{selectedProperty.name}</span>
+              </div>
+              <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5 text-sm">
+                <span className="text-muted-foreground">Tenant</span>
+                <span className="font-medium">{tenantData.name}</span>
+              </div>
+              <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+                <span className="text-muted-foreground">Move-out</span>
+                <span className="font-medium">{format(new Date(tenantData.moveOutDate + 'T00:00:00'), 'MMM d, yyyy')}</span>
+              </div>
+              <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5 text-sm">
+                <span className="text-muted-foreground">Deposit</span>
+                <span className="font-medium">{formatCents(dollarsToCents(parseFloat(depositAmount) || 0))}</span>
+              </div>
               {parseFloat(petDeposit) > 0 && (
-                <div className="flex justify-between"><span className="text-muted-foreground">Pet Deposit</span><span className="font-medium">{formatCents(dollarsToCents(parseFloat(petDeposit) || 0))}</span></div>
+                <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+                  <span className="text-muted-foreground">Pet Deposit</span>
+                  <span className="font-medium">{formatCents(dollarsToCents(parseFloat(petDeposit) || 0))}</span>
+                </div>
               )}
-              <div className="flex justify-between"><span className="text-muted-foreground">State</span><span className="font-medium">{selectedProperty.address.state}</span></div>
+              <div className={`flex items-center justify-between px-4 py-2.5 text-sm ${parseFloat(petDeposit) > 0 ? 'bg-muted/40' : ''}`}>
+                <span className="text-muted-foreground">State</span>
+                <span className="font-medium">{selectedProperty.address.state}</span>
+              </div>
             </div>
 
             {depositDueDatePreview && (
-              <div className="flex items-start gap-2 rounded-lg border-l-4 border-primary bg-secondary/30 p-3">
-                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div className="flex items-start gap-2.5 rounded-lg border-l-4 border-emerald bg-emerald/5 p-3">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-emerald" />
                 <p className="text-sm">
                   Deposit must be returned by <span className="font-semibold">{format(depositDueDatePreview, 'MMM d, yyyy')}</span> per {selectedProperty.address.state} law.
                 </p>
@@ -315,8 +390,8 @@ export function TurnoverCreatePage() {
               Based on {stateRulesPreview.stateName} statute as of {stateRulesPreview.lastUpdated}. This is not legal advice. Consult an attorney for your specific situation.
             </p>
 
-            <Button className="w-full" onClick={handleCreate} disabled={saving}>
-              {saving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" /> : 'Generate Timeline'}
+            <Button className="h-11 w-full font-600" onClick={handleCreate} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Generate Timeline'}
             </Button>
           </CardContent>
         </Card>

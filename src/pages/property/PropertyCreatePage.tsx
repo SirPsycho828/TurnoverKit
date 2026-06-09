@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Plus, X, GripVertical, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { Plus, X, GripVertical, ArrowLeft, Check } from 'lucide-react';
 import { DEFAULT_ROOMS, ROOM_SUGGESTIONS } from '@/config/room-defaults';
 import { US_STATES } from '@/config/us-states';
 import { dollarsToCents } from '@/lib/currency';
@@ -44,6 +44,8 @@ const depositSchema = z.object({
 type AddressInput = z.input<typeof addressSchema>;
 type DepositInput = z.input<typeof depositSchema>;
 
+const STEP_LABELS = ['Address', 'Rooms', 'Deposit'];
+
 export function PropertyCreatePage() {
   const navigate = useNavigate();
   const { user, profile } = useAuthContext();
@@ -52,8 +54,6 @@ export function PropertyCreatePage() {
   const [newRoom, setNewRoom] = useState('');
   const [addressData, setAddressData] = useState<z.output<typeof addressSchema> | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const totalSteps = 3;
 
   const addressForm = useForm<AddressInput>({
     resolver: zodResolver(addressSchema),
@@ -105,6 +105,7 @@ export function PropertyCreatePage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+      toast.success('Property created');
       navigate(`/properties/${docRef.id}`);
     } catch {
       // Firestore will queue offline
@@ -118,53 +119,86 @@ export function PropertyCreatePage() {
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <button onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))} className="rounded-lg p-2 hover:bg-muted">
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+          aria-label="Go back"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h2 className="text-xl font-semibold">Add Property</h2>
+        <h2 className="font-heading text-xl font-700 tracking-tight">Add Property</h2>
       </div>
 
-      <Progress value={(step / totalSteps) * 100} className="h-1" />
-      <p className="text-xs text-muted-foreground">Step {step} of {totalSteps}</p>
+      {/* Step indicator */}
+      <div className="flex items-center justify-between px-2">
+        {STEP_LABELS.map((label, i) => {
+          const stepNum = i + 1;
+          const isCompleted = step > stepNum;
+          const isActive = step === stepNum;
+          return (
+            <div key={label} className="flex flex-col items-center gap-1.5">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-600 transition-colors ${
+                  isCompleted
+                    ? 'bg-emerald text-white'
+                    : isActive
+                      ? 'bg-emerald text-white'
+                      : 'border-2 border-muted-foreground/30 text-muted-foreground'
+                }`}
+              >
+                {isCompleted ? <Check className="h-4 w-4" /> : stepNum}
+              </div>
+              <span className={`text-xs font-500 ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Step 1: Address */}
       {step === 1 && (
-        <Card>
-          <CardHeader><CardTitle>Address</CardTitle></CardHeader>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald/10 text-xs font-700 text-emerald">1</span>
+              Address
+            </CardTitle>
+          </CardHeader>
           <CardContent>
             <form onSubmit={handleAddressSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="street">Street Address</Label>
-                <Input id="street" placeholder="123 Main St" {...addressForm.register('street')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="street" className="text-xs font-500 text-muted-foreground">Street Address</Label>
+                <Input id="street" placeholder="123 Main St" className="h-11" {...addressForm.register('street')} />
                 {addressForm.formState.errors.street && <p className="text-sm text-destructive">{addressForm.formState.errors.street.message}</p>}
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input id="city" {...addressForm.register('city')} />
+                <div className="space-y-1.5">
+                  <Label htmlFor="city" className="text-xs font-500 text-muted-foreground">City</Label>
+                  <Input id="city" className="h-11" {...addressForm.register('city')} />
                   {addressForm.formState.errors.city && <p className="text-sm text-destructive">{addressForm.formState.errors.city.message}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="zip">ZIP</Label>
-                  <Input id="zip" {...addressForm.register('zip')} />
+                <div className="space-y-1.5">
+                  <Label htmlFor="zip" className="text-xs font-500 text-muted-foreground">ZIP</Label>
+                  <Input id="zip" className="h-11" {...addressForm.register('zip')} />
                   {addressForm.formState.errors.zip && <p className="text-sm text-destructive">{addressForm.formState.errors.zip.message}</p>}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <select id="state" className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...addressForm.register('state')}>
+              <div className="space-y-1.5">
+                <Label htmlFor="state" className="text-xs font-500 text-muted-foreground">State</Label>
+                <select id="state" className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...addressForm.register('state')}>
                   <option value="">Select...</option>
                   {US_STATES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
                 </select>
                 {addressForm.formState.errors.state && <p className="text-sm text-destructive">{addressForm.formState.errors.state.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Property Label (optional)</Label>
-                <Input id="name" placeholder="e.g., Unit B" {...addressForm.register('name')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="text-xs font-500 text-muted-foreground">Property Label (optional)</Label>
+                <Input id="name" placeholder="e.g., Unit B" className="h-11" {...addressForm.register('name')} />
               </div>
-              <Button type="submit" className="w-full">Next</Button>
+              <Button type="submit" className="h-11 w-full font-600">Next</Button>
             </form>
           </CardContent>
         </Card>
@@ -172,16 +206,21 @@ export function PropertyCreatePage() {
 
       {/* Step 2: Rooms */}
       {step === 2 && (
-        <Card>
-          <CardHeader><CardTitle>Rooms</CardTitle></CardHeader>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald/10 text-xs font-700 text-emerald">2</span>
+              Rooms
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               {rooms.map((room, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2">
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
-                  <span className="flex-1 text-sm">{room}</span>
+                <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
+                  <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+                  <span className="flex-1 text-sm font-500">{room}</span>
                   {rooms.length > 1 && (
-                    <button onClick={() => removeRoom(i)} className="text-muted-foreground hover:text-destructive">
+                    <button onClick={() => removeRoom(i)} className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-background hover:text-destructive">
                       <X className="h-4 w-4" />
                     </button>
                   )}
@@ -195,9 +234,10 @@ export function PropertyCreatePage() {
                   value={newRoom}
                   onChange={(e) => setNewRoom(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addRoom(); } }}
+                  className="h-11"
                 />
                 {newRoom && filteredSuggestions.length > 0 && (
-                  <div className="absolute top-full z-10 mt-1 w-full rounded-lg border bg-background shadow-md">
+                  <div className="absolute top-full z-10 mt-1 w-full rounded-lg border border-border/60 bg-background shadow-md">
                     {filteredSuggestions.slice(0, 5).map((s) => (
                       <button
                         key={s}
@@ -210,34 +250,39 @@ export function PropertyCreatePage() {
                   </div>
                 )}
               </div>
-              <Button variant="outline" size="icon" onClick={addRoom}><Plus className="h-4 w-4" /></Button>
+              <Button variant="outline" size="icon" onClick={addRoom} className="h-11 w-11"><Plus className="h-4 w-4" /></Button>
             </div>
-            <Button className="w-full" onClick={() => setStep(3)}>Next</Button>
+            <Button className="h-11 w-full font-600" onClick={() => setStep(3)}>Next</Button>
           </CardContent>
         </Card>
       )}
 
       {/* Step 3: Deposit */}
       {step === 3 && (
-        <Card>
-          <CardHeader><CardTitle>Deposit Details</CardTitle></CardHeader>
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald/10 text-xs font-700 text-emerald">3</span>
+              Deposit Details
+            </CardTitle>
+          </CardHeader>
           <CardContent>
             <form onSubmit={handleDepositSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="depositAmount">Security Deposit ($)</Label>
-                <Input id="depositAmount" type="number" step="0.01" min="0" placeholder="1200.00" {...depositForm.register('depositAmount')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="depositAmount" className="text-xs font-500 text-muted-foreground">Security Deposit ($)</Label>
+                <Input id="depositAmount" type="number" step="0.01" min="0" placeholder="1200.00" className="h-11" {...depositForm.register('depositAmount')} />
                 {depositForm.formState.errors.depositAmount && <p className="text-sm text-destructive">{depositForm.formState.errors.depositAmount.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="petDeposit">Pet Deposit ($, optional)</Label>
-                <Input id="petDeposit" type="number" step="0.01" min="0" placeholder="0.00" {...depositForm.register('petDeposit')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="petDeposit" className="text-xs font-500 text-muted-foreground">Pet Deposit ($, optional)</Label>
+                <Input id="petDeposit" type="number" step="0.01" min="0" placeholder="0.00" className="h-11" {...depositForm.register('petDeposit')} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="leaseStartDate">Lease Start Date (optional)</Label>
-                <Input id="leaseStartDate" type="date" {...depositForm.register('leaseStartDate')} />
+              <div className="space-y-1.5">
+                <Label htmlFor="leaseStartDate" className="text-xs font-500 text-muted-foreground">Lease Start Date (optional)</Label>
+                <Input id="leaseStartDate" type="date" className="h-11" {...depositForm.register('leaseStartDate')} />
                 <p className="text-xs text-muted-foreground">Provides context for move-in photo timestamps</p>
               </div>
-              <Button type="submit" className="w-full" disabled={saving}>
+              <Button type="submit" className="h-11 w-full font-600" disabled={saving}>
                 {saving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" /> : 'Save Property'}
               </Button>
             </form>
