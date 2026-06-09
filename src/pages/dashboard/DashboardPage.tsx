@@ -118,7 +118,7 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3" data-tour="stats">
         <Card className="border-border/60">
           <CardContent className="flex items-center gap-3 py-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/5">
@@ -157,40 +157,42 @@ export function DashboardPage() {
       </div>
 
       {/* Next Step — workflow guidance */}
-      {properties.length > 0 && totalActiveTurnovers === 0 && (
-        <NextStepCard
-          icon={RotateCcw}
-          title="No active turnovers"
-          description="When a tenant gives notice, start a turnover from any property."
-          to="/properties/new"
-          actionLabel="Add Property"
-        />
-      )}
-      {urgentTurnover && (urgentTurnover.status === 'notice_received' || urgentTurnover.status === 'inspection_scheduled') && (
-        <NextStepCard
-          icon={Camera}
-          title={`Inspect: ${urgentTurnover.tenantName}`}
-          description="Walk the unit and document each room's condition."
-          to={`/turnovers/${urgentTurnover.id}/inspect`}
-          actionLabel="Inspect"
-        />
-      )}
-      {urgentTurnover && urgentTurnover.status === 'inspection_complete' && (
-        <NextStepCard
-          icon={DollarSign}
-          title={`Deductions: ${urgentTurnover.tenantName}`}
-          description="Itemize any charges for damage beyond normal wear and tear."
-          to={`/turnovers/${urgentTurnover.id}/deductions`}
-          actionLabel="Add"
-        />
-      )}
+      <div data-tour="next-step" className="space-y-3">
+        {properties.length > 0 && totalActiveTurnovers === 0 && (
+          <NextStepCard
+            icon={RotateCcw}
+            title="No active turnovers"
+            description="When a tenant gives notice, start a turnover from any property."
+            to="/properties/new"
+            actionLabel="Add Property"
+          />
+        )}
+        {urgentTurnover && (urgentTurnover.status === 'notice_received' || urgentTurnover.status === 'inspection_scheduled') && (
+          <NextStepCard
+            icon={Camera}
+            title={`Inspect: ${urgentTurnover.tenantName}`}
+            description="Walk the unit and document each room's condition."
+            to={`/turnovers/${urgentTurnover.id}/inspect`}
+            actionLabel="Inspect"
+          />
+        )}
+        {urgentTurnover && urgentTurnover.status === 'inspection_complete' && (
+          <NextStepCard
+            icon={DollarSign}
+            title={`Deductions: ${urgentTurnover.tenantName}`}
+            description="Itemize any charges for damage beyond normal wear and tear."
+            to={`/turnovers/${urgentTurnover.id}/deductions`}
+            actionLabel="Add"
+          />
+        )}
+      </div>
 
       {/* Property List Header */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-500 text-muted-foreground uppercase tracking-wide">
           All Properties
         </p>
-        <Button size="sm" onClick={() => navigate('/properties/new')}>
+        <Button size="sm" onClick={() => navigate('/properties/new')} data-tour="add-property">
           <Plus className="mr-1 h-4 w-4" />
           Add Property
         </Button>
