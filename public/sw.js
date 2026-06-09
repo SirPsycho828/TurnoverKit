@@ -1,4 +1,4 @@
-const CACHE_NAME = 'turnoverkit-v1';
+const CACHE_NAME = 'turnoverkit-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -31,9 +31,12 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and Firebase/API calls
+  // Skip non-GET, Firebase/API calls, and auth-related requests
   if (request.method !== 'GET') return;
   if (url.hostname.includes('firestore') || url.hostname.includes('googleapis')) return;
+  if (url.hostname.includes('accounts.google.com')) return;
+  if (url.hostname.includes('identitytoolkit')) return;
+  if (url.hostname.includes('securetoken')) return;
   if (url.pathname.startsWith('/__')) return;
 
   // Navigation requests: network first, fallback to cached index.html (SPA)
@@ -48,13 +51,15 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (response.ok && url.origin === self.location.origin) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        }
-        return response;
-      });
+      return fetch(request)
+        .then((response) => {
+          if (response.ok && url.origin === self.location.origin) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match('/index.html'));
     }),
   );
 });

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { DollarSign, CheckCircle2, Send } from 'lucide-react';
+import { DollarSign, CheckCircle2 } from 'lucide-react';
 import type { Turnover, WithId } from '@/types';
 
 const RETURN_METHODS = [
@@ -68,7 +67,7 @@ export function RefundPanel({ turnover, totalDeductions }: Props) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
-          <DollarSign className="h-4 w-4 text-accent" />
+          <DollarSign className="h-4 w-4 text-emerald" />
           {owedByTenant > 0 ? 'Balance Due' : 'Refund'}
         </CardTitle>
       </CardHeader>

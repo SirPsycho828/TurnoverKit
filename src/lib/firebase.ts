@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { connectAuthEmulator, indexedDBLocalPersistence, initializeAuth } from 'firebase/auth';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
@@ -14,10 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Use indexedDB persistence for PWA/offline support
-const auth = initializeAuth(app, {
-  persistence: indexedDBLocalPersistence,
-});
+const auth = getAuth(app);
 
 const db = getFirestore(app);
 const storage = getStorage(app);

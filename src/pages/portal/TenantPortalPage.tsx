@@ -13,13 +13,12 @@ import { format } from 'date-fns';
 import { formatCents } from '@/lib/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, DollarSign, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
+import { Shield, DollarSign, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { Turnover, Deduction, WithId } from '@/types';
 
-type PortalView = 'loading' | 'invalid' | 'overview' | 'dispute' | 'acknowledged';
+type PortalView = 'loading' | 'invalid' | 'expired' | 'overview' | 'dispute' | 'acknowledged';
 
 export function TenantPortalPage() {
   const { token } = useParams<{ token: string }>();
@@ -45,7 +44,7 @@ export function TenantPortalPage() {
 
       // Check expiry
       if (t.portalExpiresAt.toDate() < new Date()) {
-        setView('invalid');
+        setView('expired');
         return;
       }
 
@@ -115,8 +114,10 @@ export function TenantPortalPage() {
 
   if (view === 'loading') {
     return (
-      <div className="mx-auto flex min-h-svh max-w-[640px] items-center justify-center px-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="mx-auto flex min-h-svh max-w-[640px] flex-col items-center justify-center gap-3 px-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5">
+          <Loader2 className="h-6 w-6 animate-spin text-emerald" />
+        </div>
       </div>
     );
   }
@@ -124,10 +125,26 @@ export function TenantPortalPage() {
   if (view === 'invalid') {
     return (
       <div className="mx-auto flex min-h-svh max-w-[640px] flex-col items-center justify-center px-4">
-        <AlertCircle className="mb-4 h-12 w-12 text-muted-foreground" />
-        <h2 className="text-xl font-semibold">Link Expired or Invalid</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This portal link is no longer valid. Contact your landlord for a new link.
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+          <AlertCircle className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <h2 className="mt-4 font-heading text-xl font-700 tracking-tight">Invalid Link</h2>
+        <p className="mt-2 max-w-xs text-center text-sm text-muted-foreground">
+          This portal link is not valid. Please check the link or contact your landlord.
+        </p>
+      </div>
+    );
+  }
+
+  if (view === 'expired') {
+    return (
+      <div className="mx-auto flex min-h-svh max-w-[640px] flex-col items-center justify-center px-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+          <AlertCircle className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <h2 className="mt-4 font-heading text-xl font-700 tracking-tight">Link Expired</h2>
+        <p className="mt-2 max-w-xs text-center text-sm text-muted-foreground">
+          This portal link has expired. Contact your landlord for a new link.
         </p>
       </div>
     );
@@ -136,10 +153,15 @@ export function TenantPortalPage() {
   if (view === 'acknowledged') {
     return (
       <div className="mx-auto flex min-h-svh max-w-[640px] flex-col items-center justify-center px-4">
-        <CheckCircle2 className="mb-4 h-12 w-12 text-success" />
-        <h2 className="text-xl font-semibold">Acknowledged</h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald/10">
+          <CheckCircle2 className="h-7 w-7 text-emerald" />
+        </div>
+        <h2 className="mt-4 font-heading text-xl font-700 tracking-tight">Acknowledged</h2>
+        <p className="mt-2 max-w-xs text-center text-sm text-muted-foreground">
           Your acknowledgment has been recorded. Your landlord will process your deposit return.
+        </p>
+        <p className="mt-3 max-w-xs text-center text-xs text-muted-foreground/70">
+          Your landlord has been notified. If you have questions about your deposit, contact them directly.
         </p>
       </div>
     );
@@ -156,34 +178,34 @@ export function TenantPortalPage() {
     return (
       <div className="mx-auto min-h-svh max-w-[640px] px-4 py-6">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Dispute Deduction</h2>
+          <h2 className="font-heading text-xl font-700 tracking-tight">Dispute Deduction</h2>
           {deduction && (
-            <Card>
+            <Card className="border-border/60">
               <CardContent className="py-3">
                 <p className="font-medium">{deduction.description}</p>
-                <p className="text-sm text-muted-foreground">{formatCents(deduction.amount)}</p>
+                <p className="text-sm tabular-nums text-muted-foreground">{formatCents(deduction.amount)}</p>
               </CardContent>
             </Card>
           )}
           <div className="space-y-2">
-            <Label>Your Name</Label>
-            <Input value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
+            <Label className="text-xs font-500 text-muted-foreground">Your Name</Label>
+            <Input className="h-11" value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Explanation</Label>
+            <Label className="text-xs font-500 text-muted-foreground">Explanation</Label>
             <textarea
               value={disputeText}
               onChange={(e) => setDisputeText(e.target.value)}
               placeholder="Explain why you disagree with this deduction..."
-              className="min-h-[120px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-[120px] w-full rounded-lg border border-input bg-background px-3 py-2 text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => setView('overview')}>
+            <Button variant="outline" className="h-11 flex-1 font-600" onClick={() => setView('overview')}>
               Cancel
             </Button>
             <Button
-              className="flex-1"
+              className="h-11 flex-1 font-600"
               onClick={handleDispute}
               disabled={submitting || !disputeText.trim()}
             >
@@ -199,12 +221,17 @@ export function TenantPortalPage() {
     <div className="mx-auto min-h-svh max-w-[640px] px-4 py-6">
       <div className="space-y-4">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-primary">TurnoverKit</h1>
-          <p className="text-sm text-muted-foreground">Tenant Portal</p>
+        <div className="flex flex-col items-center gap-2 py-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-sm">
+            <Shield className="h-5 w-5 text-emerald" />
+          </div>
+          <div className="text-center">
+            <h1 className="font-heading text-lg font-700 tracking-tight text-foreground">TurnoverKit</h1>
+            <p className="text-xs font-500 text-muted-foreground">Tenant Portal</p>
+          </div>
         </div>
 
-        <Card>
+        <Card className="border-border/60">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Move-Out Summary</CardTitle>
           </CardHeader>
@@ -225,72 +252,76 @@ export function TenantPortalPage() {
         </Card>
 
         {/* Deposit breakdown */}
-        <Card>
+        <Card className="border-border/60">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <DollarSign className="h-4 w-4" /> Deposit Breakdown
+              <DollarSign className="h-4 w-4 text-emerald" /> Deposit Breakdown
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
+          <CardContent className="space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Security Deposit</span>
-              <span>{formatCents(turnover.depositAmount)}</span>
+              <span className="tabular-nums">{formatCents(turnover.depositAmount)}</span>
             </div>
             {turnover.petDeposit > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Pet Deposit</span>
-                <span>{formatCents(turnover.petDeposit)}</span>
+                <span className="tabular-nums">{formatCents(turnover.petDeposit)}</span>
               </div>
             )}
-            <div className="flex justify-between border-t pt-1 font-medium">
+            <div className="flex justify-between border-t pt-1.5 font-medium">
               <span>Total Held</span>
-              <span>{formatCents(totalDeposit)}</span>
+              <span className="tabular-nums">{formatCents(totalDeposit)}</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Deductions */}
         {deductions.length > 0 && (
-          <Card>
+          <Card className="border-border/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Deductions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {deductions.map((d) => (
-                <div key={d.id} className="flex items-start justify-between rounded-lg border p-2">
-                  <div>
-                    <p className="text-sm font-medium">{d.description}</p>
-                    <p className="text-xs text-muted-foreground">{d.roomName} — {d.category}</p>
+                <div key={d.id} className="rounded-xl border border-border/60 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{d.description}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{d.roomName} -- {d.category}</p>
+                    </div>
+                    <span className="text-sm font-600 tabular-nums">{formatCents(d.amount)}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{formatCents(d.amount)}</span>
-                    <button
+                  <div className="mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs font-500"
                       onClick={() => {
                         setDisputeDeductionId(d.id);
                         setView('dispute');
                       }}
-                      className="text-xs text-primary hover:underline"
                     >
                       Dispute
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
               <div className="flex justify-between border-t pt-2 text-sm">
                 <span className="font-medium">Total Deductions</span>
-                <span className="font-medium text-destructive">-{formatCents(totalDeductions)}</span>
+                <span className="font-medium tabular-nums text-destructive">-{formatCents(totalDeductions)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Refund Amount</span>
-                <span className="font-medium text-success">{formatCents(refundAmount)}</span>
+                <span className="font-heading font-700 tabular-nums text-emerald">{formatCents(refundAmount)}</span>
               </div>
             </CardContent>
           </Card>
         )}
 
         {/* Legal info */}
-        <div className="flex items-start gap-2 rounded-lg bg-secondary/30 p-3">
-          <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <div className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/50 p-3">
+          <Shield className="mt-0.5 h-4 w-4 shrink-0 text-emerald" />
           <p className="text-xs text-muted-foreground">
             Your landlord is required to return your deposit (minus lawful deductions) within{' '}
             {turnover.stateRules.returnDeadlineDays} {turnover.stateRules.deadlineType} days of move-out.
@@ -302,10 +333,10 @@ export function TenantPortalPage() {
         {deductions.length > 0 && (
           <div className="space-y-3 pb-6">
             <div className="space-y-2">
-              <Label>Your Name (to acknowledge)</Label>
-              <Input value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
+              <Label className="text-xs font-500 text-muted-foreground">Your Name (to acknowledge)</Label>
+              <Input className="h-11" value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
             </div>
-            <Button className="w-full" onClick={handleAcknowledge} disabled={submitting || !tenantName.trim()}>
+            <Button className="h-11 w-full font-600" onClick={handleAcknowledge} disabled={submitting || !tenantName.trim()}>
               {submitting ? 'Submitting...' : 'Acknowledge & Accept'}
             </Button>
             <p className="text-center text-xs text-muted-foreground">

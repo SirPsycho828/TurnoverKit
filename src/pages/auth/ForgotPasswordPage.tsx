@@ -8,7 +8,8 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 const resetSchema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -33,7 +34,6 @@ export function ForgotPasswordPage() {
       await resetPassword(data.email);
       setSent(true);
     } catch {
-      // Always show success to prevent email enumeration
       setSent(true);
     } finally {
       setLoading(false);
@@ -41,42 +41,48 @@ export function ForgotPasswordPage() {
   };
 
   return (
-    <AuthLayout>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center text-xl">Reset Password</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <AuthLayout title="Reset password" subtitle="We'll email you a reset link">
+      <Card className="border-border/60 shadow-md">
+        <CardContent className="pt-6">
           {sent ? (
-            <div className="space-y-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                If an account exists with that email, you'll receive a password reset link shortly.
-              </p>
+            <div className="space-y-5 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald/10">
+                <CheckCircle2 className="h-6 w-6 text-emerald" />
+              </div>
+              <div>
+                <p className="font-heading text-base font-600 text-foreground">
+                  Check your inbox
+                </p>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  If an account exists with that email, you'll receive a password reset link shortly.
+                </p>
+              </div>
               <Link to="/signin">
                 <Button variant="outline" className="w-full">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to sign in
                 </Button>
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Enter your email and we'll send you a link to reset your password.
-              </p>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-500 text-muted-foreground">
+                  Email address
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
+                  className="h-11"
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-xs text-destructive">{errors.email.message}</p>
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="h-11 w-full font-600" disabled={loading}>
                 {loading ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
                 ) : (
@@ -85,7 +91,11 @@ export function ForgotPasswordPage() {
               </Button>
 
               <div className="text-center">
-                <Link to="/signin" className="text-sm text-accent hover:underline">
+                <Link
+                  to="/signin"
+                  className="inline-flex items-center gap-1.5 text-sm font-500 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
                   Back to sign in
                 </Link>
               </div>

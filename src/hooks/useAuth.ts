@@ -82,7 +82,9 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider);
+    console.log('[Auth] Starting Google sign-in popup...');
+    const result = await signInWithPopup(auth, googleProvider);
+    console.log('[Auth] Google sign-in success:', result.user.email);
   }, []);
 
   const signOut = useCallback(async () => {

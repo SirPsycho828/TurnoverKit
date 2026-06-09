@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: 'Inter', sans-serif;
-    --font-sans: 'Inter', sans-serif;
+    --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-sans: 'Figtree', system-ui, sans-serif;
 
     /* shadcn color tokens */
     --color-background: var(--background);
@@ -33,6 +33,7 @@
     --color-success-foreground: var(--success-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
+    --color-emerald: var(--emerald);
 
     /* Radius tokens */
     --radius-sm: calc(var(--radius) * 0.5);
@@ -42,42 +43,49 @@
     --radius-2xl: calc(var(--radius) * 2);
     --radius-3xl: calc(var(--radius) * 2.5);
     --radius-4xl: calc(var(--radius) * 3);
+
+    /* Shadow tokens */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
 }
 
 :root {
-    /* TurnoverKit Design System - Light mode only (no dark mode in MVP) */
-    --background: #FFFFFF;
-    --foreground: #212529;
+    /* TurnoverKit Design System — Command */
+    --background: #F8FAFC;
+    --foreground: #0F172A;
 
     --card: #FFFFFF;
-    --card-foreground: #212529;
+    --card-foreground: #0F172A;
 
     --popover: #FFFFFF;
-    --popover-foreground: #212529;
+    --popover-foreground: #0F172A;
 
-    --primary: #1B4965;
+    --primary: #0F172A;
     --primary-foreground: #FFFFFF;
 
-    --secondary: #CAE9FF;
-    --secondary-foreground: #1B4965;
+    --secondary: #F1F5F9;
+    --secondary-foreground: #334155;
 
-    --muted: #F8F9FA;
-    --muted-foreground: #6C757D;
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
 
-    --accent: #5FA8D3;
-    --accent-foreground: #FFFFFF;
+    --accent: #ECFDF5;
+    --accent-foreground: #065F46;
 
-    --destructive: #9B2226;
+    --destructive: #DC2626;
 
-    --success: #2D6A4F;
+    --success: #059669;
     --success-foreground: #FFFFFF;
 
-    --warning: #E09F3E;
-    --warning-foreground: #212529;
+    --warning: #D97706;
+    --warning-foreground: #FFFFFF;
 
-    --border: #DEE2E6;
-    --input: #DEE2E6;
-    --ring: #5FA8D3;
+    --emerald: #10B981;
+
+    --border: #E2E8F0;
+    --input: #CBD5E1;
+    --ring: #10B981;
 
     --radius: 0.5rem;
 }
@@ -88,11 +96,104 @@
     }
     body {
         @apply bg-background text-foreground;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Figtree', system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
     html {
         @apply font-sans;
     }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Scroll-reveal animation */
+@keyframes reveal-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reveal {
+    opacity: 0;
+}
+
+.reveal.visible {
+    animation: reveal-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Stagger delays for child reveals */
+.reveal-delay-1 { animation-delay: 100ms; }
+.reveal-delay-2 { animation-delay: 200ms; }
+.reveal-delay-3 { animation-delay: 300ms; }
+.reveal-delay-4 { animation-delay: 400ms; }
+
+/* Pipeline pulse for landing hero */
+@keyframes emerald-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+
+/* Hero staggered load animation */
+@keyframes hero-enter {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-stagger {
+    opacity: 0;
+    animation: hero-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.hero-stagger-1 { animation-delay: 0ms; }
+.hero-stagger-2 { animation-delay: 120ms; }
+.hero-stagger-3 { animation-delay: 240ms; }
+.hero-stagger-4 { animation-delay: 360ms; }
+.hero-stagger-5 { animation-delay: 500ms; }
+
+/* Card hover lift */
+.card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.08), 0 4px 8px -4px rgb(0 0 0 / 0.04);
+}
+
+/* Sonner toast overrides */
+[data-sonner-toaster] [data-sonner-toast] {
+    --normal-bg: var(--card);
+    --normal-text: var(--foreground);
+    --normal-border: var(--border);
+    font-family: 'Figtree', system-ui, sans-serif;
+}
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+    --normal-bg: #ECFDF5;
+    --normal-text: #065F46;
+    --normal-border: #A7F3D0;
+}
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+    --normal-bg: #FEF2F2;
+    --normal-text: #991B1B;
+    --normal-border: #FECACA;
 }
