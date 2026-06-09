@@ -183,9 +183,19 @@ Gaps:
 - [x] All 18 findings resolved across 11 pages
 - [x] TypeScript build passes clean
 
-## Phase 6 (Onboarding) — Skipped
-- Assessment: Neither setup wizard nor app tour needed
-- Reason: NextStepCards already provide contextual guidance at every step; page count is low (5 app pages); no multi-field setup form beyond existing onboarding
+## Phase 6 (Onboarding) — Complete
+- Setup Wizard: Skipped (app only needs 1 entity before core workflow — below 3+ threshold)
+- App Tour: Built (5 stops)
+  - Stop 1: Dashboard stats — "Your command center"
+  - Stop 2: Add Property button — "Start here"
+  - Stop 3: Next Step cards — "Follow the workflow"
+  - Stop 4: Vendors nav — "Vendor directory"
+  - Stop 5: Settings nav — "Your preferences"
+- Library: react-joyride v3.1.0
+- Custom tooltip: TourTooltip.tsx (matches design system)
+- Auto-starts on first visit, skippable, localStorage persistence
+- Replay from Settings > Need Help > Replay App Tour
+- Components: src/components/onboarding/{AppTour,TourTooltip}.tsx
 
 ## Phase 2 (Workflow Audit) — Complete
 - [x] Step 1: Load references (workflow-gap-types.md)
