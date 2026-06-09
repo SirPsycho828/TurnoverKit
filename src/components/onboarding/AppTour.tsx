@@ -63,15 +63,24 @@ export function useAppTour() {
 }
 
 export function AppTour() {
-  const [run, setRun] = useState(() => {
+  const [run, setRun] = useState(false);
+
+  // Primary trigger: auto-start for ANY user who has never completed the tour
+  // Secondary trigger: pending flag set by wizard completion or Settings replay
+  useEffect(() => {
     const completed = localStorage.getItem(TOUR_KEY) === 'true';
     const pending = localStorage.getItem(TOUR_PENDING_KEY) === 'true';
-    return !completed || pending;
-  });
+    if (!completed || pending) {
+      const timer = setTimeout(() => setRun(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Listen for manual tour start (from Settings)
   useEffect(() => {
-    const handler = () => setRun(true);
+    const handler = () => {
+      setTimeout(() => setRun(true), 800);
+    };
     window.addEventListener('tour-start', handler);
     return () => window.removeEventListener('tour-start', handler);
   }, []);
