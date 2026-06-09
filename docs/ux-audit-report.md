@@ -170,6 +170,7 @@ Gaps:
 - **Findings resolved:** 18/18 (0 remaining)
 - **Average page score (modified pages):** 3.0/9 -> 5.9/9
 - **Workflows fixed:** First-Time Setup (Bumpy -> Smooth), Add Property (Smooth), Start Turnover (Bumpy -> Smooth), Complete Inspection (Bumpy -> Smooth), Draft Deductions (Bumpy -> Smooth), Finalize & Send (Bumpy -> Smooth), Tenant Review (Smooth), Manage Vendors (Smooth)
-- **Components created:** NextStepCard (`src/components/ux/NextStepCard.tsx`), GuidanceTip (`src/components/ux/GuidanceTip.tsx`)
-- **Onboarding:** Not applicable — NextStepCards provide contextual guidance; page count is low
-- **Pages modified:** 11
+- **Components created:** NextStepCard (`src/components/ux/NextStepCard.tsx`), GuidanceTip (`src/components/ux/GuidanceTip.tsx`), AppTour (`src/components/onboarding/AppTour.tsx`), TourTooltip (`src/components/onboarding/TourTooltip.tsx`)
+- **Onboarding:** 5-stop app tour (react-joyride v3.1.0) — auto-starts on first visit, skippable, replayable from Settings
+- **Tour stops:** Dashboard stats, Add Property, Next Step cards, Vendors nav, Settings nav
+- **Pages modified:** 11 (+ AppLayout for tour mount and data-tour attributes)
