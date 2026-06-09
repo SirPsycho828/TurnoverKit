@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 
 const STEPS = ['welcome', 'property', 'done'] as const;
-type StepId = (typeof STEPS)[number];
 
 export function SetupWizardPage() {
   const navigate = useNavigate();

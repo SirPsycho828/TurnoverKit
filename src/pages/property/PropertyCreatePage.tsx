@@ -43,6 +43,7 @@ const depositSchema = z.object({
 
 type AddressInput = z.input<typeof addressSchema>;
 type DepositInput = z.input<typeof depositSchema>;
+type DepositOutput = z.output<typeof depositSchema>;
 
 const STEP_LABELS = ['Address', 'Rooms', 'Deposit'];
 
@@ -60,7 +61,7 @@ export function PropertyCreatePage() {
     defaultValues: { state: profile?.state ?? '' },
   });
 
-  const depositForm = useForm<DepositInput>({
+  const depositForm = useForm<DepositInput, unknown, DepositOutput>({
     resolver: zodResolver(depositSchema),
   });
 
