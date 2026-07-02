@@ -51,7 +51,7 @@ export function SignInPage() {
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Google sign-in error:', err);
-      setError(`Google sign-in failed: ${err.code || err.message || 'Unknown error'}`);
+      setError('Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }

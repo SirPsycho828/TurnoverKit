@@ -13,7 +13,10 @@ import { US_STATES } from '@/config/us-states';
 import { MapPin, Building2, ArrowRight } from 'lucide-react';
 
 const onboardingSchema = z.object({
-  state: z.string().min(2, 'Select your state'),
+  state: z
+    .string()
+    .min(2, 'Select your state')
+    .refine((val) => US_STATES.some((s) => s.code === val), 'Invalid state selection'),
   unitCount: z.string().min(1, 'Enter the number of units').transform((val, ctx) => {
     const num = parseInt(val, 10);
     if (isNaN(num) || num < 1) {

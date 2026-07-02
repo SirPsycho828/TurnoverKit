@@ -64,7 +64,7 @@ export function SignUpPage() {
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Google sign-up error:', err);
-      setError(`Google sign-up failed: ${err.code || err.message || 'Unknown error'}`);
+      setError('Google sign-up failed. Please try again.');
     } finally {
       setLoading(false);
     }

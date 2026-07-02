@@ -3,10 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Mobile-first PWA for property managers to run rental turnovers with state-specific deposit compliance, photo documentation, and e-signatures.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SirPsycho828/TurnoverKit.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -47,6 +58,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vitest": "^4.1.9"
   }
 }

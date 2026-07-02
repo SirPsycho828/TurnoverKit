@@ -1,0 +1,8 @@
+dist
+dist-ssr
+node_modules
+functions/lib
+functions/node_modules
+.firebase
+*.local
+package-lock.json
